@@ -1,6 +1,10 @@
 import threading
 import socket
 import os
+import logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger(__name__)
+
 
 HOST = "127.0.0.1"  # local host — bind address for the server
 PORT = 6555          # arbitrary unused port for the chat server
@@ -44,14 +48,14 @@ def accept_connections() -> None:
     """
     while True:
         client, address = server.accept()
-        print(f"Connected with {address}")
+        logger.info(f"Connected with {address}")
 
         client.send('NICK'.encode('ascii'))
         nickname = client.recv(1024).decode('ascii')
 
         clients[client] = nickname
 
-        print(f"Nickname of the client is {nickname}")
+        logger.info(f"Nickname of the client is {nickname}")
         broadcast(f"{nickname} joined the chat!".encode('ascii'))
         client.send("Connected to the server!".encode('ascii'))
 
@@ -63,6 +67,6 @@ if __name__ == "__main__":
     try:
         accept_connections()
     except KeyboardInterrupt:
-        print("\nShutting down server...")
+        logger.error("\nShutting down server...")
         server.close()
         os._exit(0)

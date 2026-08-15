@@ -1,6 +1,9 @@
 import socket
 import threading
 import os
+import logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger(__name__)
 
 HOST = "127.0.0.1"  # server address to connect to
 PORT = 6555
@@ -22,9 +25,9 @@ def receive_messages() -> None:
             if message == 'NICK':
                 client.send(nickname.encode('ascii'))
             else:
-                print(message)
+                logger.info(message)
         except OSError:
-            print("Connection to server lost.")
+            logger.error("Connection to server lost.")
             client.close()
             break
 
@@ -46,6 +49,6 @@ if __name__ == "__main__":
     try:
         write_thread.join()
     except KeyboardInterrupt:
-        print("\nDisconnecting...")
+        logger.error("\nDisconnecting...")
         client.close()
         os._exit(0)
