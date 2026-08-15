@@ -33,3 +33,11 @@ receive_thread.start()
 
 write_thread = threading.Thread(target=write, daemon=True)
 write_thread.start()
+
+try: 
+    write_thread.join()
+except KeyboardInterrupt:
+    print("\nDisconnecting...")
+    client.close()
+
+print("main thread reached end")
