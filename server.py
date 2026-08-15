@@ -2,56 +2,67 @@ import threading
 import socket
 import os
 
-HOST = "127.0.0.1"                          # local host
-PORT = 6555 
+HOST = "127.0.0.1"  # local host — bind address for the server
+PORT = 6555          # arbitrary unused port for the chat server
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
 server.listen()
 
-clients = {}
+# maps each connected client socket to its chosen nickname.
+clients: dict[socket.socket, str] = {}
 
 
-def broadcast(message):
+def broadcast(message: bytes) -> None:
+    """Send `message` to every currently connected client."""
     for client in clients:
         client.send(message)
-        
-        
-def handle(client):
+
+
+def handle_client(client: socket.socket) -> None:
+    """
+    Continuously relay messages from one connected client to everyone else.
+    Runs in its own thread per client. Exits the loop when the client
+    disconnects (recv/send raises, since the socket becomes unusable).
+    """
     while True:
         try:
             message = client.recv(1024)
             broadcast(message)
-        except:
+        except OSError:
+            # Client disconnected (abruptly closed, network drop, etc.)
             nickname = clients.pop(client)
             client.close()
             broadcast(f"{nickname} left the chat!".encode('ascii'))
-            
             break
-        
-        
-def receive():
+
+
+def accept_connections() -> None:
+    """
+    Continuously accept new client connections, register their nickname,
+    and spin up a dedicated thread to handle each one.
+    """
     while True:
         client, address = server.accept()
-        print(f"Connected with {str(address)}")
-        
+        print(f"Connected with {address}")
+
         client.send('NICK'.encode('ascii'))
         nickname = client.recv(1024).decode('ascii')
-        
+
         clients[client] = nickname
-        
+
         print(f"Nickname of the client is {nickname}")
         broadcast(f"{nickname} joined the chat!".encode('ascii'))
-        
         client.send("Connected to the server!".encode('ascii'))
-        
-        thread = threading.Thread(target=handle, args=(client,), daemon=True)
-        thread.start()
-        
-        
-try:      
-    receive()
-except KeyboardInterrupt:
-    print("\nShutting down server...")
-    server.close()
-    os._exit(0)
+
+        client_thread = threading.Thread(target=handle_client, args=(client,), daemon=True)
+        client_thread.start()
+
+
+if __name__ == "__main__":
+    try:
+        accept_connections()
+    except KeyboardInterrupt:
+        print("\nShutting down server...")
+        server.close()
+        os._exit(0)
