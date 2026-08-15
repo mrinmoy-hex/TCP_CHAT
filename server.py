@@ -1,5 +1,6 @@
 import threading
 import socket
+import os
 
 HOST = "127.0.0.1"                          # local host
 PORT = 6555 
@@ -48,4 +49,9 @@ def receive():
         thread.start()
         
         
-receive()
+try:      
+    receive()
+except KeyboardInterrupt:
+    print("\nShutting down server...")
+    server.close()
+    os._exit(0)

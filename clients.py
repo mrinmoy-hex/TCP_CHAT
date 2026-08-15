@@ -1,5 +1,6 @@
 import socket
 import threading
+import os
 
 HOST = "127.0.0.1"                          # local host
 PORT = 6555 
@@ -39,5 +40,5 @@ try:
 except KeyboardInterrupt:
     print("\nDisconnecting...")
     client.close()
+    os._exit(0)
 
-print("main thread reached end")
