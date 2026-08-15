@@ -28,8 +28,8 @@ def write():
         client.send(message.encode('ascii'))
         
         
-receive_thread = threading.Thread(target=receive)
+receive_thread = threading.Thread(target=receive, daemon=True)
 receive_thread.start()
 
-write_thread = threading.Thread(target=write)
+write_thread = threading.Thread(target=write, daemon=True)
 write_thread.start()

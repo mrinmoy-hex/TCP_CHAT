@@ -49,7 +49,7 @@ def receive():
         
         client.send("Connected to the server!".encode('ascii'))
         
-        thread = threading.Thread(target=handle, args=(client,))
+        thread = threading.Thread(target=handle, args=(client,), daemon=True)
         thread.start()
         
         
