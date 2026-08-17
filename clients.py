@@ -50,8 +50,23 @@ def receive_messages() -> None:
 def send_messages() -> None:
     """Continuously read user input and send it to the server as a chat message."""
     while True:
+        if stop_thread:
+            break
+        
         message = f"{nickname}: {input('')}"
-        client.send(message.encode('ascii'))
+        if message[len(nickname) + 2].startswith('/'):
+            # username: /commands
+            if nickname == 'admin':
+                if message[len(nickname) + 2].startswith('/kick'):
+                    client.send(f"KICK {message[len(nickname)+2+6]}".encode('ascii'))
+                
+                elif message[len(nickname) + 2].startswith('/ban'):
+                    client.send(f"BAN {message[len(nickname)+2+5]}".encode('ascii'))
+            else:
+                print("Commands can only be executed by the admin!")
+        
+        else:       
+            client.send(message.encode('ascii'))
 
 
 if __name__ == "__main__":
