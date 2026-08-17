@@ -7,9 +7,14 @@ HOST = "127.0.0.1"  # server address to connect to
 PORT = 6555
 
 nickname = input("Choose a nickname: ")
+if nickname == 'admin':
+    password = input("Enter password for admin: ")
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((HOST, PORT))
+
+
+stop_thread = False
 
 
 def receive_messages() -> None:
@@ -18,10 +23,22 @@ def receive_messages() -> None:
     nickname handshake, and print any regular chat messages as they arrive.
     """
     while True:
+        
+        global stop_thread
+        if stop_thread:
+            break
+        
         try:
             message = client.recv(1024).decode('ascii')
             if message == 'NICK':
                 client.send(nickname.encode('ascii'))
+                next_message = client.recv(1024).decode('ascii')
+                if next_message == 'pwd':
+                    client.send(password.encode('ascii'))
+                    if client.recv(1024).decode('ascii') == 'REFUSE':
+                        print("Connection refused. Wrong Password!")
+                        stop_thread = True
+                        
             else:
                 print(message)
         except OSError:

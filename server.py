@@ -6,8 +6,8 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger(__name__)
 
 
-HOST = "127.0.0.1"  # local host — bind address for the server
-PORT = 6555          # arbitrary unused port for the chat server
+HOST = "127.0.0.1"      # local host — bind address for the server
+PORT = 6555             # arbitrary unused port for the chat server
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
@@ -52,6 +52,18 @@ def accept_connections() -> None:
 
         client.send('NICK'.encode('ascii'))
         nickname = client.recv(1024).decode('ascii')
+        
+        # check for admin
+        if nickname == 'admin':
+            client.send('pwd'.encode('ascii'))
+            password = client.recv(1024).decode('ascii')
+            
+            # need to work on it to make it more secure
+            if password != 'adminpass':
+                client.send('REFUSE'.encode('ascii'))
+                client.close()
+                continue
+        
 
         clients[client] = nickname
 
